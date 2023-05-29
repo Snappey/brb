@@ -1,6 +1,6 @@
 ## BRB (Be Right Back) Discord Bot
 
-Time how long your "friends" actually are when they say brb.
+Time how long your "friends" actually are when they say brb. (it's basically just a timer)
 
 ### Usage
 
@@ -11,9 +11,9 @@ Two commands are exposed `brb` and `back`, these are invoked using Slash command
 Marks the author as brb with a default expected time of `5 minutes`. 
 
 ```text
-/brb duration: 15m // Same as above
+/brb duration: 15m // Mark yourself as brb with a target duration of 15 minutes
 
-/brb user: @friend // Same as above
+/brb user: @friend // Mark your friend as brb with a default of 5 minutes
 ```
 
 #### back
@@ -50,5 +50,27 @@ OPTIONAL:
 GUILD_ID = <testing_guild_id>
 ```
 
+Providing a GuildId will create guild Slash commands instead of global.
+
 #### Docker
 
+You can get images from GitHub or pull the latest from `docker pull ghcr.io/snappey/brb:latest`
+
+##### Example
+
+```shell
+docker run -it \
+  -e APP_ID=discord_bot_app_id \
+  -e AUTH_TOKEN=discord_bot_secret \
+   ghcr.io/snappey/brb:latest
+```
+
+or
+
+```shell
+docker run -it \
+  -e APP_ID=discord_bot_app_id \
+  -e AUTH_TOKEN=discord_bot_secret \
+  -e GUILD_ID=testing_guild_id \
+   ghcr.io/snappey/brb:latest
+```
