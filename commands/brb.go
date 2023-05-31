@@ -22,7 +22,7 @@ type BrbHandlerInput struct {
 }
 
 func BrbHandler(s *discordgo.Session, i BrbHandlerInput) (HandlerOutput, error) {
-    // mark user as Brb
+    // mark user as BrbSession
     err := Manager.CreateBrb(manager.CreateBrbInput{
         TargetUserId:    i.TargetUser.ID,
         ReportingUserId: i.User.ID,
@@ -37,7 +37,7 @@ func BrbHandler(s *discordgo.Session, i BrbHandlerInput) (HandlerOutput, error) 
 
     // Let user know they have a brb
     return HandlerOutput{
-        Content: fmt.Sprintf("created brb for %s, see you in %s", i.User.Mention(), i.BrbDuration.String()),
+        Content: fmt.Sprintf("created brb for %s, see you in %s", i.TargetUser.Mention(), i.BrbDuration.String()),
         Flags:   discordgo.MessageFlagsEphemeral,
     }, err
 }

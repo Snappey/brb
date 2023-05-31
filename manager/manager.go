@@ -7,7 +7,7 @@ import (
 )
 
 type Manager struct {
-    users map[string][]*Brb
+    users map[string][]*BrbSession
 }
 
 var manager *Manager
@@ -15,7 +15,7 @@ var manager *Manager
 func GetInstance() *Manager {
     if manager == nil {
         manager = &Manager{
-            users: map[string][]*Brb{},
+            users: map[string][]*BrbSession{},
         }
     }
     return manager
@@ -31,25 +31,30 @@ func (m *Manager) CreateBrb(input CreateBrbInput) error {
     userBrbs, hasUser := m.users[input.TargetUserId]
 
     if !hasUser {
-        m.users[input.TargetUserId] = make([]*Brb, 1)
+        m.users[input.TargetUserId] = make([]*BrbSession, 1)
     } else {
         // Check no active brbs
         latestBrb := userBrbs[len(userBrbs)-1]
-        if !latestBrb.Finished {
-            return fmt.Errorf("user has active brb, started %s ago", latestBrb.GetDuration().String())
+        if !latestBrb.IsFinished() {
+            return fmt.Errorf("user has active brbSession, started %s ago", latestBrb.GetDuration().String())
         }
+    }
+
+    brbSession, err := CreateNewBrbAndStart(input.ReportingUserId, input.TargetUserId, input.TargetDuration)
+    if err != nil {
+        return err
     }
 
     m.users[input.TargetUserId] = append(
         userBrbs,
-        CreateNewBrb(input.ReportingUserId, input.TargetUserId, input.TargetDuration),
+        brbSession,
     )
 
     log.Info().
         Str("reporting_user", input.ReportingUserId).
         Str("target_user", input.TargetUserId).
         Dur("target_duration", input.TargetDuration).
-        Msg("created brb entry")
+        Msg("created brbSession entry")
 
     return nil
 }
@@ -76,7 +81,7 @@ func (m *Manager) FinishBrb(input FinishBrbInput) (time.Duration, error) {
     return latestBrb.GetDuration(), nil
 }
 
-func (m *Manager) GetActiveBrb(targetUserId string) (*Brb, error) {
+func (m *Manager) GetActiveBrb(targetUserId string) (*BrbSession, error) {
     userBrbs, hasUser := m.users[targetUserId]
 
     if !hasUser || len(userBrbs) == 0 {
@@ -84,7 +89,7 @@ func (m *Manager) GetActiveBrb(targetUserId string) (*Brb, error) {
     }
 
     latestBrb := userBrbs[len(userBrbs)-1]
-    if latestBrb.Finished {
+    if latestBrb.IsFinished() {
         return nil, fmt.Errorf("user has no active brb")
     }
 

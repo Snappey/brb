@@ -27,7 +27,7 @@ func MentionHandler(s *discordgo.Session, i *discordgo.MessageCreate) {
     targetUserId := i.Author.ID
 
     activeBrb, err := Manager.GetActiveBrb(targetUserId)
-    if err != nil || activeBrb.Finished {
+    if err != nil || activeBrb.IsFinished() {
         BrbMentionHandler(s, i)
     } else {
         BackMentionHandler(s, i)
