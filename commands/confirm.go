@@ -56,6 +56,41 @@ func createComponentInteraction(brb *manager.BrbSession, channel chan<- BackConf
             })
         }
 
+        var message string
+        switch result {
+        case BackConfirmYes:
+            message = fmt.Sprintf("<@%s> is back, confirmed by <@%s>",
+                brb.UserId,
+                buttonUserId,
+            )
+        case BackConfirmNo:
+            message = fmt.Sprintf("<@%s> is NOT back, confirmed by <@%s>",
+                brb.UserId,
+                buttonUserId,
+            )
+        case BackConfirmGone:
+            message = fmt.Sprintf("<@%s> is gone again, confirmed by <@%s>",
+                brb.UserId,
+                buttonUserId,
+            )
+        default:
+            message = fmt.Sprintf("<@%s> is idk.. somethings gone wrong, confirmed by <@%s>",
+                brb.UserId,
+                buttonUserId,
+            )
+        }
+
+        err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+            Type: discordgo.InteractionResponseChannelMessageWithSource,
+            Data: &discordgo.InteractionResponseData{
+                Content: message,
+                Flags:   0,
+            },
+        })
+        if err != nil {
+            log.Err(err).Interface("brb", brb).Msg("failed to send response interaction to back confirmation")
+        }
+
         channel <- result
     }
 }
@@ -76,7 +111,7 @@ func createBackConfirmationAndWait(s *discordgo.Session, m *discordgo.Message, b
         return BackConfirmError, fmt.Errorf("session failed to update span")
     }
 
-    var callback chan BackConfirm
+    callback := make(chan BackConfirm)
     yesId, noId, goneId := createCustomId(brb, BackConfirmYes), createCustomId(brb, BackConfirmNo), createCustomId(brb, BackConfirmGone)
     ComponentsHandler[yesId] = createComponentInteraction(brb, callback, BackConfirmYes)
     ComponentsHandler[noId] = createComponentInteraction(brb, callback, BackConfirmNo)
