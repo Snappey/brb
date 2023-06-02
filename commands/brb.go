@@ -51,36 +51,27 @@ func BrbChatCommandHandler(s *discordgo.Session, i *discordgo.InteractionCreate)
         TargetUser:   i.Member.User,
     }
 
-    if i.Type == discordgo.InteractionApplicationCommand {
-        input.BrbDuration, err = getBrbDurationFromInteraction(i.ApplicationCommandData())
+    options := i.ApplicationCommandData().Options
+    optionMap := make(map[string]*discordgo.ApplicationCommandInteractionDataOption, len(options))
+    for _, opt := range options {
+        optionMap[opt.Name] = opt
+    }
+
+    if duration, ok := optionMap[brbDurationKey]; ok {
+        input.BrbDuration, err = time.ParseDuration(duration.StringValue())
         if err != nil {
-            err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+            _ = s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
                 Type: discordgo.InteractionResponseChannelMessageWithSource,
                 Data: &discordgo.InteractionResponseData{
                     Content: fmt.Sprintf("failed to parse duration, %s", err),
                     Flags:   discordgo.MessageFlagsEphemeral,
                 },
             })
-            if err != nil {
-                log.Printf("failed to respond to brb interaction, err=%v", err)
-                return
-            }
         }
+    }
 
-        input.TargetUser, err = getTargetUserFromInteraction(s, i.ApplicationCommandData())
-        if err != nil {
-            err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-                Type: discordgo.InteractionResponseChannelMessageWithSource,
-                Data: &discordgo.InteractionResponseData{
-                    Content: fmt.Sprintf("failed to parse user, %s", err),
-                    Flags:   discordgo.MessageFlagsEphemeral,
-                },
-            })
-            if err != nil {
-                log.Printf("failed to respond to brb interaction, err=%v", err)
-                return
-            }
-        }
+    if targetUser, ok := optionMap[brbMentionKey]; ok {
+        input.TargetUser = targetUser.UserValue(s)
     }
 
     if input.BrbDuration < MinDuration || input.BrbDuration > MaxDuration {
@@ -161,28 +152,4 @@ func BrbMentionHandler(s *discordgo.Session, i *discordgo.MessageCreate) {
             log.Printf("error sending `brb` response to user channel_id=%s err=%s", i.ChannelID, sentErr)
         }
     }
-}
-
-func getBrbDurationFromInteraction(data discordgo.ApplicationCommandInteractionData) (time.Duration, error) {
-    for _, option := range data.Options {
-        if option != nil && option.Name == brbDurationKey {
-            durationString := option.StringValue()
-
-            return time.ParseDuration(durationString)
-        }
-    }
-
-    return DefaultDuration, nil
-}
-
-func getTargetUserFromInteraction(s *discordgo.Session, data discordgo.ApplicationCommandInteractionData) (*discordgo.User, error) {
-    for _, option := range data.Options {
-        if option != nil && option.Name == brbMentionKey {
-            targetUser := option.UserValue(s)
-
-            return targetUser, nil
-        }
-    }
-
-    return nil, nil
 }
