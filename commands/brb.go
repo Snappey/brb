@@ -2,6 +2,7 @@ package commands
 
 import (
     "brb/manager"
+    "brb/util"
     "fmt"
     "github.com/bwmarrin/discordgo"
     "github.com/rs/zerolog/log"
@@ -37,7 +38,7 @@ func BrbHandler(s *discordgo.Session, i BrbHandlerInput) (HandlerOutput, error) 
 
     // Let user know they have a brb
     return HandlerOutput{
-        Content: fmt.Sprintf("created brb for %s, see you in %s", i.TargetUser.Mention(), i.BrbDuration.String()),
+        Content: fmt.Sprintf("created brb for %s, see you in %s", i.TargetUser.Mention(), util.HumanizeDuration(i.BrbDuration)),
         Flags:   discordgo.MessageFlagsEphemeral,
     }, err
 }
