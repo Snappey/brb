@@ -2,6 +2,7 @@ package commands
 
 import (
     "brb/manager"
+    "brb/util"
     "fmt"
     "github.com/bwmarrin/discordgo"
     "github.com/rs/zerolog/log"
@@ -39,6 +40,7 @@ func createComponentInteraction(brb *manager.BrbSession, channel chan<- BackConf
                     Flags:   discordgo.MessageFlagsEphemeral,
                 },
             })
+            return
         }
 
         nonReportingUserTime := brb.LastUpdated.Add(time.Minute * 2)
@@ -49,11 +51,12 @@ func createComponentInteraction(brb *manager.BrbSession, channel chan<- BackConf
                     Content: fmt.Sprintf("you can't confirm <@%s> return yet, needs <@%s> confirmation. (try again in %s)",
                         brb.UserId,
                         brb.ReportingUserId,
-                        nonReportingUserTime.Sub(time.Now().UTC()).String(),
+                        util.HumanizeDuration(nonReportingUserTime.Sub(time.Now().UTC())),
                     ),
                     Flags: discordgo.MessageFlagsEphemeral,
                 },
             })
+            return
         }
 
         var message string
@@ -159,6 +162,7 @@ func createBackConfirmationAndWait(s *discordgo.Session, m *discordgo.Message, b
     }
 
     defer func() {
+        close(callback)
         _ = s.ChannelMessageDelete(msg.ChannelID, m.ID)
     }()
 

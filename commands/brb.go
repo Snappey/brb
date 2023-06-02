@@ -61,7 +61,7 @@ func BrbChatCommandHandler(s *discordgo.Session, i *discordgo.InteractionCreate)
                 },
             })
             if err != nil {
-                log.Printf("failed to responsed to brb interaction, err=%v", err)
+                log.Printf("failed to respond to brb interaction, err=%v", err)
                 return
             }
         }
@@ -76,7 +76,7 @@ func BrbChatCommandHandler(s *discordgo.Session, i *discordgo.InteractionCreate)
                 },
             })
             if err != nil {
-                log.Printf("failed to responsed to brb interaction, err=%v", err)
+                log.Printf("failed to respond to brb interaction, err=%v", err)
                 return
             }
         }
@@ -91,7 +91,7 @@ func BrbChatCommandHandler(s *discordgo.Session, i *discordgo.InteractionCreate)
             },
         })
         if err != nil {
-            log.Printf("failed to responsed to brb interaction, err=%v", err)
+            log.Printf("failed to respond to brb interaction, err=%v", err)
             return
         }
     }

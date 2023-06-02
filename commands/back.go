@@ -2,6 +2,7 @@ package commands
 
 import (
     "brb/manager"
+    "brb/util"
     "fmt"
     "github.com/bwmarrin/discordgo"
     "github.com/rs/zerolog/log"
@@ -29,7 +30,7 @@ func BackHandler(s *discordgo.Session, i HandlerInput) (HandlerOutput, error) {
     }
 
     confirmResult, err := createBackConfirmationAndWait(s, i.Message, activeBrb)
-    log.Printf("back confirmation result %s", confirmResult)
+    log.Info().Interface("brb_session", activeBrb).Str("confirm_result", string(confirmResult)).Msg("brb session confirm result received")
     switch confirmResult {
     case BackConfirmYes:
         // Finish brb
@@ -37,9 +38,9 @@ func BackHandler(s *discordgo.Session, i HandlerInput) (HandlerOutput, error) {
         return HandlerOutput{
             Content: fmt.Sprintf("welcome back %s, you took %s (target: %s, difference: %s)",
                 i.User.Mention(),
-                activeBrb.FinishedDuration.String(),
-                activeBrb.TargetDuration.String(),
-                (activeBrb.FinishedDuration - activeBrb.TargetDuration).String(),
+                util.HumanizeDuration(activeBrb.FinishedDuration),
+                util.HumanizeDuration(activeBrb.TargetDuration),
+                util.HumanizeDuration(activeBrb.FinishedDuration-activeBrb.TargetDuration),
             ),
             Flags: 0,
         }, err
@@ -82,9 +83,9 @@ func BackHandler(s *discordgo.Session, i HandlerInput) (HandlerOutput, error) {
 
         response := fmt.Sprintf("no one confirmed %s :( we'll trust you and finish anyways.. you took %s (target: %s, difference: %s)",
             i.User.Mention(),
-            activeBrb.FinishedDuration.String(),
-            activeBrb.TargetDuration.String(),
-            (activeBrb.FinishedDuration - activeBrb.TargetDuration).String(),
+            util.HumanizeDuration(activeBrb.FinishedDuration),
+            util.HumanizeDuration(activeBrb.TargetDuration),
+            util.HumanizeDuration(activeBrb.FinishedDuration-activeBrb.TargetDuration),
         )
 
         if activeBrb.UserId != activeBrb.ReportingUserId {
