@@ -96,6 +96,9 @@ func (b *BrbSession) stopSpan() error {
 
 func (b *BrbSession) calculateDuration() time.Duration {
     return lo.Reduce(b.Spans, func(agg time.Duration, item BrbSpan, i int) time.Duration {
+        if item.Active {
+            return agg + (time.Now().UTC().Sub(item.StartedAt))
+        }
         return agg + item.Duration
     }, 0)
 }
