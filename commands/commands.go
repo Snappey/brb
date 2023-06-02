@@ -25,7 +25,7 @@ var ApplicationCommands = []discordgo.ApplicationCommand{
                 Required:    false,
             },
             {
-                Type:        discordgo.ApplicationCommandOptionMentionable,
+                Type:        discordgo.ApplicationCommandOptionUser,
                 Name:        brbMentionKey,
                 Description: "who is brb",
                 Required:    false,
@@ -37,11 +37,25 @@ var ApplicationCommands = []discordgo.ApplicationCommand{
         Description: "mark yourself as back, finishing your brb",
         Type:        discordgo.ChatApplicationCommand,
     },
+    {
+        Name:        "gonefor",
+        Description: "find out how long your friend has been gone for",
+        Type:        discordgo.ChatApplicationCommand,
+        Options: []*discordgo.ApplicationCommandOption{
+            {
+                Type:        discordgo.ApplicationCommandOptionUser,
+                Name:        brbMentionKey,
+                Description: "who is brb",
+                Required:    false,
+            },
+        },
+    },
 }
 
 var CommandHandlers = map[string]func(s *discordgo.Session, i *discordgo.InteractionCreate){
-    "brb":  BrbChatCommandHandler,
-    "back": BackChatHandler,
+    "brb":     BrbChatCommandHandler,
+    "back":    BackChatHandler,
+    "gonefor": GoneChatHandler,
 }
 
 func Register(discord *discordgo.Session, cfg config.Config) map[string]string {
