@@ -1,7 +1,7 @@
 package commands
 
 import (
-    "brb/manager"
+    "brb/core"
     "brb/util"
     "fmt"
     "github.com/bwmarrin/discordgo"
@@ -24,7 +24,7 @@ type BrbHandlerInput struct {
 
 func BrbHandler(s *discordgo.Session, i BrbHandlerInput) (HandlerOutput, error) {
     // mark user as BrbSession
-    err := Manager.CreateBrb(manager.CreateBrbInput{
+    err := Manager.CreateBrb(core.CreateBrbInput{
         TargetUserId:    i.TargetUser.ID,
         ReportingUserId: i.User.ID,
         TargetDuration:  i.BrbDuration,

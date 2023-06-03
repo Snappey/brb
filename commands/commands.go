@@ -2,7 +2,7 @@ package commands
 
 import (
     "brb/config"
-    "brb/manager"
+    "brb/core"
     "github.com/bwmarrin/discordgo"
     "github.com/rs/zerolog/log"
 )
@@ -10,7 +10,7 @@ import (
 const brbDurationKey = "duration"
 const brbMentionKey = "user"
 
-var Manager = manager.GetInstance()
+var Manager = core.GetManagerInstance()
 
 var ApplicationCommands = []discordgo.ApplicationCommand{
     {

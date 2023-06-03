@@ -1,7 +1,7 @@
 package commands
 
 import (
-    "brb/manager"
+    "brb/core"
     "brb/util"
     "fmt"
     "github.com/bwmarrin/discordgo"
@@ -21,11 +21,11 @@ const (
 
 var ComponentsHandler = map[string]func(s *discordgo.Session, i *discordgo.InteractionCreate){}
 
-func createCustomId(brb *manager.BrbSession, key BackConfirm) string {
+func createCustomId(brb *core.BrbSession, key BackConfirm) string {
     return fmt.Sprintf("%s:%s", brb.Id, key)
 }
 
-func createComponentInteraction(brb *manager.BrbSession, channel chan<- BackConfirm, result BackConfirm) func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+func createComponentInteraction(brb *core.BrbSession, channel chan<- BackConfirm, result BackConfirm) func(s *discordgo.Session, i *discordgo.InteractionCreate) {
     return func(s *discordgo.Session, i *discordgo.InteractionCreate) {
         if i.Member.User.Bot {
             return
@@ -104,7 +104,7 @@ func cleanupHandlers(Ids []string) {
     }
 }
 
-func createBackConfirmationAndWait(s *discordgo.Session, m *discordgo.Message, brb *manager.BrbSession) (BackConfirm, error) {
+func createBackConfirmationAndWait(s *discordgo.Session, m *discordgo.Message, brb *core.BrbSession) (BackConfirm, error) {
     if !brb.IsActive() {
         return BackConfirmError, fmt.Errorf("session is not active")
     }

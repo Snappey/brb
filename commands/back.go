@@ -1,7 +1,7 @@
 package commands
 
 import (
-    "brb/manager"
+    "brb/core"
     "brb/util"
     "fmt"
     "github.com/bwmarrin/discordgo"
@@ -89,7 +89,7 @@ func BackHandler(s *discordgo.Session, i HandlerInput) (HandlerOutput, error) {
         )
 
         if activeBrb.UserId != activeBrb.ReportingUserId {
-            err := Manager.CreateBrb(manager.CreateBrbInput{
+            err := Manager.CreateBrb(core.CreateBrbInput{
                 TargetUserId:    activeBrb.ReportingUserId,
                 ReportingUserId: activeBrb.ReportingUserId,
                 TargetDuration:  time.Minute * 5,

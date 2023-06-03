@@ -1,4 +1,4 @@
-package manager
+package core
 
 import (
     "fmt"
@@ -37,7 +37,7 @@ type BrbSession struct {
     Spans            []BrbSpan
 }
 
-func CreateNewBrb(reportingUserId string, targetUserId string, targetDuration time.Duration) *BrbSession {
+func createNewBrb(reportingUserId string, targetUserId string, targetDuration time.Duration) *BrbSession {
     return &BrbSession{
         Id:               uuid.New(),
         UserId:           targetUserId,
@@ -51,8 +51,8 @@ func CreateNewBrb(reportingUserId string, targetUserId string, targetDuration ti
     }
 }
 
-func CreateNewBrbAndStart(reportingUserId string, targetUserId string, targetDuration time.Duration) (*BrbSession, error) {
-    brb := CreateNewBrb(reportingUserId, targetUserId, targetDuration)
+func createNewBrbAndStart(reportingUserId string, targetUserId string, targetDuration time.Duration) (*BrbSession, error) {
+    brb := createNewBrb(reportingUserId, targetUserId, targetDuration)
     return brb, brb.Start()
 }
 

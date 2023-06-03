@@ -1,30 +1,54 @@
-package manager
+package core
 
 import (
+    "brb/config"
+    "brb/events"
     "fmt"
     "github.com/rs/zerolog/log"
     "time"
 )
 
-type Manager struct {
-    users map[string][]*BrbSession
-}
-
-var manager *Manager
-
-func GetInstance() *Manager {
-    if manager == nil {
-        manager = &Manager{
-            users: map[string][]*BrbSession{},
-        }
-    }
-    return manager
-}
-
 type CreateBrbInput struct {
     TargetUserId    string
     ReportingUserId string
     TargetDuration  time.Duration
+}
+
+type FinishBrbInput struct {
+    TargetUserId    string
+    ReportingUserId string
+}
+
+type Manager struct {
+    users     map[string][]*BrbSession
+    exporters []events.Exporter
+}
+
+var manager *Manager
+
+func GetManagerInstance() *Manager {
+    if manager == nil {
+        cfg := config.Get()
+        var exporters []events.Exporter
+
+        if cfg.PrometheusPushGateway != "" {
+            exporters = append(exporters, events.PrometheusPush{Endpoint: cfg.PrometheusPushGateway})
+        }
+
+        if cfg.HttpEndpoint != "" {
+            exporters = append(exporters, events.Http{Endpoint: cfg.HttpEndpoint})
+        }
+
+        if cfg.FilePath != "" {
+            exporters = append(exporters, events.File{FilePath: cfg.FilePath})
+        }
+
+        manager = &Manager{
+            users:     map[string][]*BrbSession{},
+            exporters: exporters,
+        }
+    }
+    return manager
 }
 
 func (m *Manager) CreateBrb(input CreateBrbInput) error {
@@ -40,7 +64,7 @@ func (m *Manager) CreateBrb(input CreateBrbInput) error {
         }
     }
 
-    brbSession, err := CreateNewBrbAndStart(input.ReportingUserId, input.TargetUserId, input.TargetDuration)
+    brbSession, err := createNewBrbAndStart(input.ReportingUserId, input.TargetUserId, input.TargetDuration)
     if err != nil {
         return err
     }
@@ -57,28 +81,6 @@ func (m *Manager) CreateBrb(input CreateBrbInput) error {
         Msg("created brbSession entry")
 
     return nil
-}
-
-type FinishBrbInput struct {
-    TargetUserId    string
-    ReportingUserId string
-}
-
-func (m *Manager) FinishBrb(input FinishBrbInput) (time.Duration, error) {
-    latestBrb, err := m.GetActiveBrb(input.TargetUserId)
-    if err != nil {
-        return InvalidDuration, err
-    }
-
-    latestBrb.Finish()
-
-    log.Info().
-        Str("reporting_user", input.ReportingUserId).
-        Str("target_user", input.TargetUserId).
-        Dur("finished_duration", latestBrb.FinishedDuration).
-        Msg("created brb entry")
-
-    return latestBrb.GetDuration(), nil
 }
 
 func (m *Manager) GetActiveBrb(targetUserId string) (*BrbSession, error) {
