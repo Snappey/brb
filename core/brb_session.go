@@ -3,6 +3,7 @@ package core
 import (
     "fmt"
     "github.com/google/uuid"
+    "github.com/prometheus/client_golang/prometheus"
     "github.com/samber/lo"
     "time"
 )
@@ -27,6 +28,7 @@ type BrbSpan struct {
 
 type BrbSession struct {
     Id               uuid.UUID
+    GuildId          string
     UserId           string
     ReportingUserId  string
     State            BrbState
@@ -37,9 +39,10 @@ type BrbSession struct {
     Spans            []BrbSpan
 }
 
-func createNewBrb(reportingUserId string, targetUserId string, targetDuration time.Duration) *BrbSession {
+func createNewBrb(guildId string, reportingUserId string, targetUserId string, targetDuration time.Duration) *BrbSession {
     return &BrbSession{
         Id:               uuid.New(),
+        GuildId:          guildId,
         UserId:           targetUserId,
         ReportingUserId:  reportingUserId,
         CreatedAt:        time.Now().UTC(),
@@ -51,8 +54,8 @@ func createNewBrb(reportingUserId string, targetUserId string, targetDuration ti
     }
 }
 
-func createNewBrbAndStart(reportingUserId string, targetUserId string, targetDuration time.Duration) (*BrbSession, error) {
-    brb := createNewBrb(reportingUserId, targetUserId, targetDuration)
+func createNewBrbAndStart(guildId string, reportingUserId string, targetUserId string, targetDuration time.Duration) (*BrbSession, error) {
+    brb := createNewBrb(guildId, reportingUserId, targetUserId, targetDuration)
     return brb, brb.Start()
 }
 
@@ -113,6 +116,21 @@ func (b *BrbSession) stop(state BrbState) time.Duration {
     b.FinishedDuration = b.calculateDuration()
     b.setState(state)
 
+    labels := prometheus.Labels{
+        "guild_id": b.GuildId,
+        "user_id":  b.UserId,
+    }
+    brbSessionActive.With(labels).Dec()
+    brbSessionDuration.With(labels).Observe(b.FinishedDuration.Seconds())
+    brbSessionTargetDuration.With(labels).Observe(b.TargetDuration.Seconds())
+
+    difference := (b.FinishedDuration - b.TargetDuration).Seconds()
+    if difference > 0 {
+        brbSessionLateDifferenceDuration.With(labels).Observe(difference)
+    } else {
+        brbSessionEarlyDifferenceDuration.With(labels).Observe(difference)
+    }
+
     return b.FinishedDuration
 }
 
@@ -166,6 +184,12 @@ func (b *BrbSession) Start() error {
     }
 
     b.setState(BrbActive)
+
+    labels := prometheus.Labels{
+        "guild_id": b.GuildId,
+        "user_id":  b.UserId,
+    }
+    brbSessionActive.With(labels).Inc()
 
     return nil
 }

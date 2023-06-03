@@ -1,51 +1,28 @@
 package core
 
 import (
-    "brb/config"
-    "brb/events"
     "fmt"
     "github.com/rs/zerolog/log"
     "time"
 )
 
 type CreateBrbInput struct {
+    GuildId         string
     TargetUserId    string
     ReportingUserId string
     TargetDuration  time.Duration
 }
 
-type FinishBrbInput struct {
-    TargetUserId    string
-    ReportingUserId string
-}
-
 type Manager struct {
-    users     map[string][]*BrbSession
-    exporters []events.Exporter
+    users map[string][]*BrbSession
 }
 
 var manager *Manager
 
 func GetManagerInstance() *Manager {
     if manager == nil {
-        cfg := config.Get()
-        var exporters []events.Exporter
-
-        if cfg.PrometheusPushGateway != "" {
-            exporters = append(exporters, events.PrometheusPush{Endpoint: cfg.PrometheusPushGateway})
-        }
-
-        if cfg.HttpEndpoint != "" {
-            exporters = append(exporters, events.Http{Endpoint: cfg.HttpEndpoint})
-        }
-
-        if cfg.FilePath != "" {
-            exporters = append(exporters, events.File{FilePath: cfg.FilePath})
-        }
-
         manager = &Manager{
-            users:     map[string][]*BrbSession{},
-            exporters: exporters,
+            users: map[string][]*BrbSession{},
         }
     }
     return manager
@@ -64,7 +41,7 @@ func (m *Manager) CreateBrb(input CreateBrbInput) error {
         }
     }
 
-    brbSession, err := createNewBrbAndStart(input.ReportingUserId, input.TargetUserId, input.TargetDuration)
+    brbSession, err := createNewBrbAndStart(input.GuildId, input.ReportingUserId, input.TargetUserId, input.TargetDuration)
     if err != nil {
         return err
     }

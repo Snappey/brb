@@ -25,6 +25,7 @@ type BrbHandlerInput struct {
 func BrbHandler(s *discordgo.Session, i BrbHandlerInput) (HandlerOutput, error) {
     // mark user as BrbSession
     err := Manager.CreateBrb(core.CreateBrbInput{
+        GuildId:         i.Message.GuildID,
         TargetUserId:    i.TargetUser.ID,
         ReportingUserId: i.User.ID,
         TargetDuration:  i.BrbDuration,
@@ -46,9 +47,12 @@ func BrbHandler(s *discordgo.Session, i BrbHandlerInput) (HandlerOutput, error) 
 func BrbChatCommandHandler(s *discordgo.Session, i *discordgo.InteractionCreate) {
     var err error
     input := BrbHandlerInput{
-        HandlerInput: HandlerInput{User: i.Member.User},
-        BrbDuration:  DefaultDuration,
-        TargetUser:   i.Member.User,
+        HandlerInput: HandlerInput{
+            User:    i.Member.User,
+            Message: i.Message,
+        },
+        BrbDuration: DefaultDuration,
+        TargetUser:  i.Member.User,
     }
 
     options := i.ApplicationCommandData().Options
@@ -138,7 +142,8 @@ func BrbMentionHandler(s *discordgo.Session, i *discordgo.MessageCreate) {
     for _, target := range targets {
         out, err := BrbHandler(s, BrbHandlerInput{
             HandlerInput: HandlerInput{
-                User: i.Author,
+                User:    i.Author,
+                Message: i.Message,
             },
             BrbDuration: brbDuration,
             TargetUser:  target,

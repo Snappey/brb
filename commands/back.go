@@ -90,6 +90,7 @@ func BackHandler(s *discordgo.Session, i HandlerInput) (HandlerOutput, error) {
 
         if activeBrb.UserId != activeBrb.ReportingUserId {
             err := Manager.CreateBrb(core.CreateBrbInput{
+                GuildId:         i.Message.GuildID,
                 TargetUserId:    activeBrb.ReportingUserId,
                 ReportingUserId: activeBrb.ReportingUserId,
                 TargetDuration:  time.Minute * 5,
